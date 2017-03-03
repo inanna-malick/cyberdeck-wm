@@ -2,23 +2,53 @@
 import System.Exit
 import XMonad
 import XMonad.Config.Desktop
+import XMonad.Config.Gnome
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageHelpers
 import XMonad.Prompt
 import XMonad.Prompt.ConfirmPrompt
 import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
+import XMonad.Util.Run(spawnPipe)
+
+import XMonad
+import XMonad.Util.EZConfig
+import XMonad.Config.Gnome
+import XMonad.Hooks.ManageHelpers (isFullscreen,doFullFloat)
+import XMonad.Layout.Gaps
+import XMonad.Util.Run(spawnPipe)
+import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers
+import System.IO
+import XMonad.Layout.NoBorders
+import XMonad.Layout.Fullscreen
+import XMonad.Layout.NoBorders
+import XMonad.Layout.Spiral
+import XMonad.Layout.Tabbed
+import XMonad.Layout.ThreeColumns
+--import XMonad.Actions.Volume
+import qualified XMonad.Util.Dzen as DZEN
+import System.IO
 
 --------------------------------------------------------------------------------
 main = do
-  spawn "xmobar" -- Start a task bar such as xmobar.
+  --todo: don't hardcode xmobar path :(, mb use nix?
+  xmproc <- spawnPipe "~/.cabal/bin/xmobar ~/.xmonad/xmobarrc"
 
   -- Start xmonad using the main desktop configuration with a few
   -- simple overrides:
   xmonad $ desktopConfig
     { modMask    = mod4Mask -- Use the "Win" key for the mod key
+    , terminal = "gnome-terminal"
+    , layoutHook = smartBorders $ avoidStruts myLayout
     , manageHook = myManageHook <+> manageHook desktopConfig
-    , logHook    = dynamicLogString def >>= xmonadPropLog
+    , logHook = dynamicLogWithPP $ xmobarPP {
+            ppOutput = hPutStrLn xmproc
+          , ppTitle = xmobarColor xmobarTitleColor "" . shorten 100
+          , ppCurrent = xmobarColor xmobarCurrentWorkspaceColor ""
+          , ppSep = "   "
+      }
     }
 
     `additionalKeysP` -- Add some extra key bindings:
@@ -48,9 +78,34 @@ myManageHook = composeOne
   , className =? "XCalc"  -?> doFloat
   , className =? "mpv"    -?> doFloat
   , isDialog              -?> doCenterFloat
-
+  , isFullscreen          -?> doFullFloat --todo: revisit mb?
     -- Move transient windows to their parent:
   , transience
   ]
 
+
+xmobarTitleColor = "#FFB6B0"
+
+-- Color of current workspace in xmobar.
+xmobarCurrentWorkspaceColor = "#CEFFAC"
+
+
+{-
+-- nice pretty centered alert
+alert :: Show a => a -> X ()
+alert = dzenConfig centered . show
+centered =
+        onCurr (center 150 66)
+    >=> font "-*-helvetica-*-r-*-*-64-*-*-*-*-*-*-*"
+    >=> addArgs ["-fg", "#80c0ff"]
+    >=> addArgs ["-bg", "#000040"]
+-}
+
+myLayout = avoidStruts (
+    ThreeColMid 1 (3/100) (1/2) |||
+    Tall 1 (3/100) (1/2) |||
+    Mirror (Tall 1 (3/100) (1/2)) |||
+    Full ) |||
+---    spiral (6/7)) |||
+    noBorders (fullscreenFull Full)
 
