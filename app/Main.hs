@@ -45,7 +45,7 @@ main = do
     , manageHook = myManageHook <+> manageHook desktopConfig
     , logHook = dynamicLogWithPP $ xmobarPP {
             ppOutput = hPutStrLn xmproc
-          , ppTitle = xmobarColor xmobarTitleColor "" . shorten 100
+          , ppTitle = xmobarColor xmobarTitleColor "" . shorten 200
           , ppCurrent = xmobarColor xmobarCurrentWorkspaceColor ""
           , ppSep = "   "
       }
@@ -53,6 +53,7 @@ main = do
 
     `additionalKeysP` -- Add some extra key bindings:
       [ ("M-S-q", confirmPrompt myXPConfig "exit" (io exitSuccess))
+      , ("M-S-l", spawn "dm-tool lock")
       , ("M-p",   shellPrompt myXPConfig)
       ]
 
