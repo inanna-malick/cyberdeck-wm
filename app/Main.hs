@@ -30,6 +30,7 @@ import XMonad.Layout.ThreeColumns
 --import XMonad.Actions.Volume
 import qualified XMonad.Util.Dzen as DZEN
 import System.IO
+import XMonad.Layout.WorkspaceDir
 
 --------------------------------------------------------------------------------
 main = do
@@ -55,6 +56,7 @@ main = do
       [ ("M-S-q", confirmPrompt myXPConfig "exit" (io exitSuccess))
       , ("M-S-l", spawn "dm-tool lock")
       , ("M-p",   shellPrompt myXPConfig)
+      , ("M-S-w", changeDir myXPConfig)
       ]
 
 --------------------------------------------------------------------------------
@@ -102,7 +104,7 @@ centered =
     >=> addArgs ["-bg", "#000040"]
 -}
 
-myLayout = avoidStruts (
+myLayout = workspaceDir "~" $ avoidStruts (
     ThreeColMid 1 (3/100) (1/2) |||
     Tall 1 (3/100) (1/2) |||
     Mirror (Tall 1 (3/100) (1/2)) |||
