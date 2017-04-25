@@ -21,10 +21,6 @@ output_file=$1; shift
 cd $SRC_DIR
 
 DIR=`mktemp -d`
-touch A
 stack install --local-bin-path $DIR
-touch B
 mv -u $DIR/xmonad-pk-exe $output_file
-touch C
 rm -r $DIR
-touch D
