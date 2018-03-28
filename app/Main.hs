@@ -39,11 +39,11 @@ import qualified XMonad.Util.Dzen as DZEN
 main :: IO ()
 main = do
   --todo: don't hardcode xmobar path :(, mb use nix?
-  xmproc <- spawnPipe "~/.cabal/bin/xmobar ~/.xmonad/xmobarrc"
+  xmproc <- spawnPipe "xmobar --bottom ~/.xmonad/xmobarrc"
 
   -- Start xmonad using the main desktop configuration with a few
   -- simple overrides:
-  xmonad $ desktopConfig
+  xmonad $ gnomeConfig
     { modMask    = modm
     , terminal   = "gnome-terminal"
     , layoutHook = smartBorders $ avoidStruts myLayout
@@ -69,7 +69,7 @@ ezKeyBindings =
     , ("M-S-l", spawn "dm-tool lock")
     , ("M-p",   shellPrompt myXPConfig)
     , ("M-S-w", WD.changeDir myXPConfig)
-    , ("M-a",   AP.appendFilePrompt myXPConfig "~/todo")
+    , ("M-a",   AP.appendFilePrompt myXPConfig "~/todo") --doesn't work (write op seems to fail)
     ]
 
 -- key bindings using actual key symbols and masks
