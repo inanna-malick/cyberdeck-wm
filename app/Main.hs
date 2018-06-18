@@ -36,6 +36,9 @@ import qualified XMonad.Prompt              as P
 import qualified XMonad.Prompt.AppendFile   as AP
 import qualified XMonad.Util.Dzen as DZEN
 
+
+import Graphics.X11.ExtraTypes.XF86
+
 main :: IO ()
 main = do
   --todo: don't hardcode xmobar path :(, mb use nix?
@@ -72,11 +75,14 @@ ezKeyBindings =
     , ("M-a",   AP.appendFilePrompt myXPConfig "~/todo") --doesn't work (write op seems to fail)
     ]
 
+
 -- key bindings using actual key symbols and masks
 keyBindings :: [((KeyMask, KeySym), X ())]
 keyBindings =
     [ ((modm, xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.def)
     , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
+    , ((0, xF86XK_AudioLowerVolume), spawn "volume -")
+    , ((0, xF86XK_AudioRaiseVolume), spawn "volume +")
     ]
 
 
