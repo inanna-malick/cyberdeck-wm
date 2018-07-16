@@ -26,7 +26,6 @@ import XMonad.Util.EZConfig
 import XMonad.Util.EZConfig
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.Run(spawnPipe)
---import XMonad.Actions.Volume
 import qualified Data.Map                   as M
 import System.IO
 import qualified XMonad.Actions.Search      as S
@@ -40,27 +39,20 @@ import qualified XMonad.Util.Dzen as DZEN
 import Graphics.X11.ExtraTypes.XF86
 
 main :: IO ()
-main = do
-  --todo: don't hardcode xmobar path :(, mb use nix?
-  xmproc <- spawnPipe "xmobar --bottom ~/.xmonad/xmobarrc"
+main =
+  xmonad =<< xmobar conf
 
-  -- Start xmonad using the main desktop configuration with a few
-  -- simple overrides:
-  xmonad $ gnomeConfig
-    { modMask    = modm
-    , terminal   = "gnome-terminal"
-    , layoutHook = smartBorders $ avoidStruts myLayout
-    , manageHook = myManageHook <+> manageHook desktopConfig
-    , logHook    = dynamicLogWithPP $ xmobarPP {
-            ppOutput  = hPutStrLn xmproc
-          , ppTitle   = xmobarColor xmobarTitleColor "" . shorten 200
-          , ppCurrent = xmobarColor xmobarCurrentWorkspaceColor ""
-          , ppSep     = "   "
-      }
-    }
+  where
+    conf =
+      gnomeConfig
+        { modMask    = modm
+        , terminal   = "gnome-terminal"
+        , layoutHook = smartBorders $ avoidStruts myLayout
+        , manageHook = myManageHook <+> manageHook desktopConfig
+        }
 
-    `additionalKeysP` ezKeyBindings
-    `additionalKeys`  keyBindings
+        `additionalKeysP` ezKeyBindings
+        `additionalKeys`  keyBindings
 
 modm :: KeyMask
 modm = mod4Mask -- Use the "Win" key for the mod key
@@ -72,7 +64,7 @@ ezKeyBindings =
     , ("M-S-l", spawn "dm-tool lock")
     , ("M-p",   shellPrompt myXPConfig)
     , ("M-S-w", WD.changeDir myXPConfig)
-    , ("M-a",   AP.appendFilePrompt myXPConfig "~/todo") --doesn't work (write op seems to fail)
+    , ("M-a",   spawn "touch /home/pk/test1") --doesn't work (write op seems to fail)
     ]
 
 
@@ -81,8 +73,18 @@ keyBindings :: [((KeyMask, KeySym), X ())]
 keyBindings =
     [ ((modm, xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.def)
     , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
-    , ((0, xF86XK_AudioLowerVolume), spawn "volume -")
-    , ((0, xF86XK_AudioRaiseVolume), spawn "volume +")
+    -- will break if I don't run this to fix perms every time I restart:
+    -- note to self: was breaking due to script being in ~/.local/bin instead of /bin
+    -- sudo chmod a=rw /sys/class/backlight/intel_backlight/brightness
+    , ((0, xF86XK_MonBrightnessUp), spawn "bright +")
+    , ((0, xF86XK_MonBrightnessDown), spawn "bright -")
+    , ((0, xF86XK_AudioLowerVolume), spawn "amixer -D pulse sset Master 5%-")
+    , ((0, xF86XK_AudioRaiseVolume), spawn "amixer -D pulse sset Master 5%+")
+    , ((0, xF86XK_AudioMute), spawn "amixer -D pulse sset Master toggle")
+    -- doesn't work, but works from cmd line with sudo..
+    -- , ((modm, xK_Up), spawn "sudo /home/pk/.local/bin/bright + >> /home/pk/res")
+    -- , ((modm, xK_Up), spawn "/home/pk/.local/bin/bright +")
+    -- , ((modm, xK_Down), spawn "/home/pk/.local/bin/bright -)
     ]
 
 
