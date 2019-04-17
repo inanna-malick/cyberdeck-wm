@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+
 module Main where
 
 import System.Exit
@@ -35,8 +37,28 @@ import qualified XMonad.Prompt              as P
 import qualified XMonad.Prompt.AppendFile   as AP
 import qualified XMonad.Util.Dzen as DZEN
 
+import XMonad.Actions.CycleWS
 
 import Graphics.X11.ExtraTypes.XF86
+import qualified XMonad.Layout.SimpleDecoration as SD
+
+import qualified XMonad.Layout.DecorationMadness as DM
+import qualified XMonad.Layout.NoFrillsDecoration as NFD
+
+import XMonad.Layout.MultiToggle.Instances
+import XMonad.Layout.MultiToggle
+
+import XMonad.Util.Font (Align(AlignRight))
+
+
+import XMonad.Layout.Decoration
+
+import XMonad.Layout.Reflect -- haha yes
+
+import XMonad.Layout.TabBarDecoration -- idk lol more toggles
+
+
+
 
 main :: IO ()
 main =
@@ -47,12 +69,12 @@ main =
       gnomeConfig
         { modMask    = modm
         , terminal   = "gnome-terminal"
-        , layoutHook = smartBorders $ avoidStruts myLayout
+        , layoutHook = myLayout
         , manageHook = myManageHook <+> manageHook desktopConfig
         }
-
         `additionalKeysP` ezKeyBindings
         `additionalKeys`  keyBindings
+
 
 modm :: KeyMask
 modm = mod4Mask -- Use the "Win" key for the mod key
@@ -72,6 +94,10 @@ ezKeyBindings =
 keyBindings :: [((KeyMask, KeySym), X ())]
 keyBindings =
     [ ((modm, xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.def)
+    , ((modm, xK_r), sendMessage $ Toggle REFLECTY)
+    , ((modm, xK_x), sendMessage $ Toggle NBFULL) -- toggle fullscreen for focus
+    , ((modm, xK_b), sendMessage ToggleStruts) -- toggle xmobar
+    , ((modm .|. shiftMask, xK_b), sendMessage $ Toggle HYPERTABBAR) -- toggle window decoration
     , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
     -- will break if I don't run this to fix perms every time I restart:
     -- note to self: was breaking due to script being in ~/.local/bin instead of /bin
@@ -81,6 +107,8 @@ keyBindings =
     , ((0, xF86XK_AudioLowerVolume), spawn "amixer -D pulse sset Master 5%-")
     , ((0, xF86XK_AudioRaiseVolume), spawn "amixer -D pulse sset Master 5%+")
     , ((0, xF86XK_AudioMute), spawn "amixer -D pulse sset Master toggle")
+    , ((modm .|. shiftMask, xK_Right), shiftNextScreen)
+    , ((modm .|. shiftMask, xK_Left),  shiftPrevScreen)
     -- doesn't work, but works from cmd line with sudo..
     -- , ((modm, xK_Up), spawn "sudo /home/pk/.local/bin/bright + >> /home/pk/res")
     -- , ((modm, xK_Up), spawn "/home/pk/.local/bin/bright +")
@@ -135,11 +163,48 @@ xmobarTitleColor = "#FFB6B0"
 xmobarCurrentWorkspaceColor = "#CEFFAC"
 
 
-myLayout = WD.workspaceDir "~" $ avoidStruts (
-    ThreeColMid 1 (3/100) (1/2) |||
-    Tall 1 (3/100) (1/2) |||
-    Mirror (Tall 1 (3/100) (1/2)) |||
-    Full ) |||
----    spiral (6/7)) |||
-    noBorders (fullscreenFull Full)
 
+-- todo: looks like ass, fix that.
+windowDecorationTheme = def { SD.fontName = "-misc-fixed-*-*-*-*-22-*-*-*-*-*-*-*"
+                            , SD.decoHeight = 30
+                            , SD.decoWidth  = maxBound -- no max width, not always max width
+                            -- , SD.windowTitleAddons = [("  FOOBARBAZ", AlignRight)]
+                            }
+
+
+myLayout = WD.workspaceDir "~"
+         . smartBorders
+         . avoidStruts
+         -- single-elem hlists of toggle transformer options (non-exclusive transforms)
+         . mkToggle (single REFLECTY) -- controls decoration on bottom or top, flip along Y
+         . mkToggle (single NBFULL)
+         . mkToggle (single HYPERTABBAR)
+         $ ThreeColMid 1 (3/100) (1/2)
+       ||| Tall 1 (3/100) (1/2)
+       ||| Mirror (Tall 1 (3/100) (1/2))
+
+
+
+-- bool controls if enabled, I think? lmao who knows, at least it does in `shrink`. not sure how to toggle?
+data HyperDecoration a = Hyper Bool deriving (Show, Read)
+
+-- BOILERPLATE FROM SimpleDecoration
+instance Eq a => DecorationStyle HyperDecoration a where
+    describeDeco _ = "Hyper"
+    shrink (Hyper b) (Rectangle _ _ _ dh) r@(Rectangle x y w h) =
+        if b then Rectangle x (y + fi dh) w (h - dh) else r
+    pureDecoration (Hyper b) wh ht _ s _ (w,Rectangle x y wid _) =
+        if isInStack s w
+        then if b
+             then Just $ Rectangle x  y          nwh ht
+             else Just $ Rectangle x (y - fi ht) nwh ht
+        else Nothing
+            where nwh = min wid wh
+
+hyperDeco :: (Eq a, Shrinker s) => s -> Theme
+           -> l a -> ModifiedLayout (Decoration HyperDecoration s) l a
+hyperDeco s c = decoration s c $ Hyper True
+
+data HyperTabBar = HYPERTABBAR deriving (Read, Show, Eq, Typeable)
+instance Transformer HyperTabBar Window where
+    transform _ x k = k (hyperDeco shrinkText windowDecorationTheme x) (\(ModifiedLayout _  x') -> x')
