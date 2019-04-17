@@ -59,6 +59,10 @@ import XMonad.Layout.TabBarDecoration -- idk lol more toggles
 
 
 
+import Data.Tree
+import XMonad.Actions.TreeSelect
+import XMonad.Hooks.WorkspaceHistory
+import qualified XMonad.StackSet as W
 
 main :: IO ()
 main =
@@ -183,27 +187,21 @@ myLayout = WD.workspaceDir "~"
        ||| Tall 1 (3/100) (1/2)
        ||| Mirror (Tall 1 (3/100) (1/2))
 
+data HyperDecoration a = Hyper deriving (Show, Read)
 
-
--- bool controls if enabled, I think? lmao who knows, at least it does in `shrink`. not sure how to toggle?
-data HyperDecoration a = Hyper Bool deriving (Show, Read)
-
--- BOILERPLATE FROM SimpleDecoration
 instance Eq a => DecorationStyle HyperDecoration a where
     describeDeco _ = "Hyper"
-    shrink (Hyper b) (Rectangle _ _ _ dh) r@(Rectangle x y w h) =
-        if b then Rectangle x (y + fi dh) w (h - dh) else r
-    pureDecoration (Hyper b) wh ht _ s _ (w,Rectangle x y wid _) =
+    shrink Hyper (Rectangle _ _ _ dh) r@(Rectangle x y w h) =
+        Rectangle x (y + fi dh) w (h - dh)
+    pureDecoration Hyper wh ht _ s _ (w,Rectangle x y wid _) =
         if isInStack s w
-        then if b
-             then Just $ Rectangle x  y          nwh ht
-             else Just $ Rectangle x (y - fi ht) nwh ht
+        then Just $ Rectangle x y nwh ht
         else Nothing
             where nwh = min wid wh
 
 hyperDeco :: (Eq a, Shrinker s) => s -> Theme
            -> l a -> ModifiedLayout (Decoration HyperDecoration s) l a
-hyperDeco s c = decoration s c $ Hyper True
+hyperDeco s c = decoration s c Hyper
 
 data HyperTabBar = HYPERTABBAR deriving (Read, Show, Eq, Typeable)
 instance Transformer HyperTabBar Window where
