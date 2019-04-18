@@ -4,17 +4,21 @@ Config {
 
    -- appearance
      -- font =         "xft:Bitstream Vera Sans Mono:size=16:bold:antialias=true"
-     font = "-*-Fixed-Bold-R-Normal-*-26-*-*-*-*-*-*-*"
-   , bgColor =      "black"
-   , fgColor =      "#646464"
-   , position =     Top
-   , border =       BottomB
-   , borderColor =  "#646464"
+     font        = "-*-Fixed-Bold-R-Normal-*-26-*-*-*-*-*-*-*"
+   -- , bgColor     =      "#073642" -- darkish (base2 dark) sol
+   , bgColor     =      "#002b36" -- darkish (base2 dark) sol
+   , fgColor     =      "#d33682" -- magenta sol
+   , position    =     Top
+   , border      =       FullB
+   , borderWidth = 3
+
+
+   , borderColor =  "#268bd2" -- blue sol
 
    -- layout
    , sepChar =  "%"   -- delineator between plugin names and straight text
    , alignSep = "}{"  -- separator between left-right alignment
-   , template = "%battery% %StdinReader% | %coretemp% | %memory% | %dynnetwork% }{ %multicpu% | %RJTT% | %date% || %kbd% "
+   , template = "%battery% %StdinReader% | %coretemp% | %memory% | %dynnetwork% }{ %multicpu% | %date% || %kbd% "
 
    -- general behavior
    , lowerOnStart =     True    -- send to bottom of window stack on start
@@ -40,70 +44,67 @@ Config {
    --   see http://projects.haskell.org/xmobar/#system-monitor-plugins.
    , commands =
 
-        -- weather monitor
-        [ Run Weather "RJTT" [ "--template", "<skyCondition> | <fc=#4682B4><tempC></fc>°C | <fc=#4682B4><rh></fc>% | <fc=#4682B4><pressure></fc>hPa"
-                             ] 36000
-
         -- network activity monitor (dynamic interface resolution)
-        , Run DynNetwork     [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
-                             , "--Low"      , "1000"       -- units: B/s
-                             , "--High"     , "5000"       -- units: B/s
-                             , "--low"      , "darkgreen"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkred"
+        [ Run DynNetwork     [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
+                             , "--Low"      , "1000"    -- units: B/s
+                             , "--High"     , "5000"    -- units: B/s
+                             , "--low"      , "#859900" -- green sol
+                             , "--normal"   , "#b58900" -- yellow sol
+                             , "--high"     , "#d30102" -- red sol
                              ] 10
 
         -- cpu activity monitor
         , Run MultiCpu       [ "--template" , "Cpu: <total0>%|<total1>%"
-                             , "--Low"      , "50"         -- units: %
-                             , "--High"     , "85"         -- units: %
-                             , "--low"      , "darkgreen"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkred"
+                             , "--Low"      , "35"      -- units: %
+                             , "--High"     , "65"      -- units: %
+                             , "--low"      , "#859900" -- green sol
+                             , "--normal"   , "#b58900" -- yellow sol
+                             , "--high"     , "#d30102" -- red sol
                              ] 10
 
         -- cpu core temperature monitor
         , Run CoreTemp       [ "--template" , "Temp: <core0>°C|<core1>°C"
-                             , "--Low"      , "70"        -- units: °C
-                             , "--High"     , "80"        -- units: °C
-                             , "--low"      , "darkgreen"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkred"
+                             , "--Low"      , "60"      -- units: °C
+                             , "--High"     , "70"      -- units: °C
+                             , "--low"      , "#859900" -- green sol
+                             , "--normal"   , "#b58900" -- yellow sol
+                             , "--high"     , "#d30102" -- red sol
                              ] 50
 
         -- memory usage monitor
         , Run Memory         [ "--template" ,"Mem: <usedratio>%"
-                             , "--Low"      , "20"        -- units: %
-                             , "--High"     , "90"        -- units: %
-                             , "--low"      , "darkgreen"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkred"
+                             , "--Low"      , "20"      -- units: %
+                             , "--High"     , "70"      -- units: %
+                             , "--low"      , "#859900" -- green sol
+                             , "--normal"   , "#b58900" -- yellow sol
+                             , "--high"     , "#d30102" -- red sol
                              ] 10
 
         -- battery monitor
         , Run Battery        [ "--template" , "Batt: <acstatus>"
-                             , "--Low"      , "10"        -- units: %
-                             , "--High"     , "80"        -- units: %
-                             , "--low"      , "darkred"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkgreen"
+                             , "--Low"      , "30"      -- units: %
+                             , "--High"     , "80"      -- units: %
+                             , "--low"      , "#d30102" -- red sol
+                             , "--normal"   , "#b58900" -- yellow sol
+                             , "--high"     , "#859900" -- green sol
 
                              , "--" -- battery specific options
                                        -- discharging status
                                        , "-o"	, "<left>% (<timeleft>)"
                                        -- AC "on" status
-                                       , "-O"	, "<fc=#dAA520>Charging</fc>"
-                                       -- charged status
-                                       , "-i"	, "<fc=#006000>Charged</fc>"
+                                       , "-O"	, "<fc=#268bd2>Charging</fc>" -- blue sol
+                                       -- charged status (not displaying?)
+                                       , "-i"	, "<fc=#859900>Charged</fc>" -- green sol
                              ] 50
 
         -- time and date indicator
         --   (%F = y-m-d date, %a = day of week, %T = h:m:s time)
-        , Run Date           "<fc=#ABABAB>%F (%a) %T</fc>" "date" 10
+        -- blue sol
+        , Run Date           "<fc=#268bd2>%F (%a) %T</fc>" "date" 10
 
         -- keyboard layout indicator
-        , Run Kbd            [ ("us(dvorak)" , "<fc=#00008B>DV</fc>")
-                             , ("us"         , "<fc=#8B0000>US</fc>")
+        , Run Kbd            [ ("us(dvorak)" , "<fc=#268bd2>DV</fc>")
+                             , ("us"         , "<fc=#268bd2>US</fc>")
                              ]
         , Run StdinReader
         ]
