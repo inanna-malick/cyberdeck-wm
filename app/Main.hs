@@ -62,8 +62,8 @@ main =
     conf =
       gnomeConfig
         { modMask    = modm
-        -- , terminal   = "gnome-terminal --hide-menubar --profile SolarizedDark"
-        , terminal   = "alacritty"
+        , terminal   = "gnome-terminal --hide-menubar --profile SolarizedDark"
+        -- , terminal   = "alacritty"
         , layoutHook = myLayout
         , manageHook = myManageHook <+> manageHook desktopConfig
         , normalBorderColor  = blue light -- note, blue is same for both..
