@@ -9,4 +9,4 @@ extra-deps:
 - github: pkinsky/xmonad-contrib
   commit: b3f5a09673d74c2b41961394a9c41e8ab1b6df9d
 
-resolver: lts-8.3
+resolver: lts-13.26

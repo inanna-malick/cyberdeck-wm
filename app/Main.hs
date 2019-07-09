@@ -32,6 +32,8 @@ import qualified XMonad.Prompt              as P
 import qualified XMonad.Prompt.AppendFile   as AP
 import qualified XMonad.Util.Dzen as DZEN
 
+import System.Environment (getEnvironment)
+
 import XMonad.Actions.CycleWS
 
 import Graphics.X11.ExtraTypes.XF86
@@ -55,20 +57,24 @@ import qualified XMonad.StackSet as W
 
 
 main :: IO ()
-main =
-  xmonad =<< statusBar "xmobar" xmobarConf toggleStrutsKey conf
+main = do
+  getEnvironment >>= traverse print
+  putStrLn "xmonad init"
+  h <- statusBar "xmobar" xmobarConf toggleStrutsKey conf
+  xmonad h
 
   where
     conf =
       gnomeConfig
         { modMask    = modm
-        , terminal   = "gnome-terminal --hide-menubar --profile SolarizedDark"
+        --, terminal   = "gnome-terminal --hide-menubar --profile SolarizedDark"
         -- , terminal   = "alacritty"
+        , terminal   = "sakura"
         , layoutHook = myLayout
         , manageHook = myManageHook <+> manageHook desktopConfig
         , normalBorderColor  = blue light -- note, blue is same for both..
         , focusedBorderColor = magenta light -- note, magenta is same for both..
-        , borderWidth = 4
+        , borderWidth = 3
         }
         `additionalKeysP` ezKeyBindings
         `additionalKeys`  keyBindings
@@ -83,7 +89,7 @@ xmobarConf = def { ppCurrent = xmobarColor (cyan light) "" . wrap "[" "]"
 
 
 modm :: KeyMask
-modm = mod4Mask -- Use the "Win" key for the mod key
+modm = mod1Mask -- Use the "Win" key for the mod key
 
 -- key bindings for use with ez config tool
 ezKeyBindings :: [(String, X ())]
