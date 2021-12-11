@@ -1,4 +1,4 @@
--- run 'ln -s /home/pk/dev/oss/xmonad-pk/xmobarrc .xmobarrc'  from ~/ to link this in
+-- run 'ln -s ~/cyberdeck-wm/xmobarrc .xmobarrc'  from ~/ to link this in
 
 Config {
 
