@@ -57,13 +57,13 @@ import qualified XMonad.StackSet as W
 main :: IO ()
 main =
   xmonad =<< statusBar "xmobar" xmobarConf toggleStrutsKey conf
+  -- xmonad conf
 
   where
     conf =
       gnomeConfig
         { modMask    = modm
-        , terminal   = "gnome-terminal --hide-menubar --profile SolarizedDark"
-        -- , terminal   = "alacritty"
+        , terminal   = "LIBGL_ALWAYS_SOFTWARE=1 alacritty"
         , layoutHook = myLayout
         , manageHook = myManageHook <+> manageHook desktopConfig
         , normalBorderColor  = blue light -- note, blue is same for both..
@@ -83,7 +83,7 @@ xmobarConf = def { ppCurrent = xmobarColor (cyan light) "" . wrap "[" "]"
 
 
 modm :: KeyMask
-modm = mod4Mask -- Use the "Win" key for the mod key
+modm = mod1Mask -- Use the "Alt" key for the mod key
 
 -- key bindings for use with ez config tool
 ezKeyBindings :: [(String, X ())]

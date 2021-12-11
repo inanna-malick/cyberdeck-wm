@@ -4,7 +4,7 @@ Config {
 
    -- appearance
      -- font =         "xft:Bitstream Vera Sans Mono:size=16:bold:antialias=true"
-     font        = "-*-Fixed-Bold-R-Normal-*-26-*-*-*-*-*-*-*"
+     font        = "-*-Fixed-Bold-R-Normal-*-20-*-*-*-*-*-*-*"
    -- , bgColor     =      "#073642" -- darkish (base2 dark) sol
    , bgColor     =      "#002b36" -- darkish (base2 dark) sol
    , fgColor     =      "#d33682" -- magenta sol

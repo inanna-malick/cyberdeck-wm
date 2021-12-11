@@ -1,12 +1,7 @@
 flags: {}
 extra-package-dbs: []
+system-ghc: true
 packages:
 - '.'
-extra-deps:
-- X11-xft-0.3.1
-# TODO: maybe update resolver?
-- xmonad-0.15@sha256:db671d78ecd66f39f23decf60974a3e078525ec9d2be68a3946b0cfb4d3954fa
-- github: pkinsky/xmonad-contrib
-  commit: b3f5a09673d74c2b41961394a9c41e8ab1b6df9d
 
-resolver: lts-8.3
+resolver: lts-16.27
