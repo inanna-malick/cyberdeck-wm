@@ -92,7 +92,6 @@ ezKeyBindings =
     , ("M-S-l", spawn "dm-tool lock")
     , ("M-p",   shellPrompt myXPConfig)
     , ("M-S-w", WD.changeDir myXPConfig)
-    , ("M-a",   spawn "touch /home/pk/test1") --doesn't work (write op seems to fail)
     ]
 
 
