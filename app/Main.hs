@@ -63,7 +63,7 @@ main =
     conf =
       gnomeConfig
         { modMask    = modm
-        , terminal   = "LIBGL_ALWAYS_SOFTWARE=1 alacritty"
+        , terminal   = alacritty
         , layoutHook = myLayout
         , manageHook = myManageHook <+> manageHook desktopConfig
         , normalBorderColor  = blue light -- note, blue is same for both..
@@ -73,7 +73,7 @@ main =
         `additionalKeysP` ezKeyBindings
         `additionalKeys`  keyBindings
 
-    toggleStrutsKey XConfig{modMask = modm} = (modm, xK_b )
+    toggleStrutsKey XConfig{modMask = modm} = (modm, xK_f )
 
 xmobarConf = def { ppCurrent = xmobarColor (cyan light) "" . wrap "[" "]"
                  , ppTitle   = xmobarColor (cyan light)  "" . shorten 40
@@ -82,8 +82,13 @@ xmobarConf = def { ppCurrent = xmobarColor (cyan light) "" . wrap "[" "]"
                  }
 
 
+alacritty = "LIBGL_ALWAYS_SOFTWARE=1 alacritty"
+
 modm :: KeyMask
 modm = mod1Mask -- Use the "Alt" key for the mod key
+
+
+
 
 -- key bindings for use with ez config tool
 ezKeyBindings :: [(String, X ())]
@@ -101,20 +106,17 @@ keyBindings =
     [ ((modm, xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.def)
     , ((modm, xK_r), sendMessage $ Toggle REFLECTY)
     , ((modm, xK_x), sendMessage $ Toggle NBFULL) -- toggle fullscreen for focus
-    , ((modm, xK_b), sendMessage ToggleStruts) -- toggle xmobar
     , ((modm .|. shiftMask, xK_b), sendMessage $ Toggle $ HYPERTABBAR_DARK) -- toggle window decoration
     , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
-    , ((modm .|. shiftMask, xK_t), SM.submap $ themeSelect)
-    -- will break if I don't run this to fix perms every time I restart:
-    -- note to self: was breaking due to script being in ~/.local/bin instead of /bin
-    -- sudo chmod a=rw /sys/class/backlight/intel_backlight/brightness
-    , ((0, xF86XK_MonBrightnessUp), spawn "bright +")
-    , ((0, xF86XK_MonBrightnessDown), spawn "bright -")
-    , ((0, xF86XK_AudioLowerVolume), spawn "amixer -D pulse sset Master 5%-")
-    , ((0, xF86XK_AudioRaiseVolume), spawn "amixer -D pulse sset Master 5%+")
-    , ((0, xF86XK_AudioMute), spawn "amixer -D pulse sset Master toggle")
+
     , ((modm .|. shiftMask, xK_Right), shiftNextScreen)
     , ((modm .|. shiftMask, xK_Left),  shiftPrevScreen)
+    -- launch a terminal (MOD + RETURN)
+    , ((modm, xK_Return), spawn alacritty)
+    -- close focused window  (MOD + C)
+    , ((modm, xK_c     ), confirmPrompt myXPConfig "kill window" kill)
+    -- spawn alacritty with bottom (battery and process visualizer)
+    , ((modm, xK_b), spawn $ alacritty ++ " -e btm --battery")
     ]
 
 
@@ -127,24 +129,22 @@ searchEngineMap method = M.fromList $
       , ((0, xK_w), method S.wikipedia)
       ]
 
--- note: this is janky, need to make them mutually exclusive..
--- Q: do I need to drop multitoggle and just DIY from primitives of next layer? MAYBE
-themeSelect = M.fromList $
-      [ ((0, xK_1), sendMessage $ Toggle $ HYPERTABBAR_DARK) -- toggle window decoration
-      , ((0, xK_2), sendMessage $ Toggle $ HYPERTABBAR_LIGHT) -- toggle window decoration
-      ]
-
--- idea: prompt to append to workflowy todo list
 
 --------------------------------------------------------------------------------
 -- | Customize the way 'XMonad.Prompt' looks and behaves.  It's a
 -- great replacement for dzen.
 myXPConfig :: P.XPConfig
 myXPConfig = def
-  { P.position          = P.Top
+  { P.position          = P.CenteredAt 0.25 0.5
   , P.alwaysHighlight   = True
-  , P.promptBorderWidth = 0
-  , P.font              = "xft:monospace:size=9"
+  , P.promptBorderWidth = 4
+  , P.borderColor       = magenta light
+  , P.height            = 60
+  , P.bgColor           = base0 light
+  , P.fgColor           = base3 light
+  , P.bgHLight          = base1 light
+  , P.fgHLight          = base2 light
+  , P.font              = "xft:monospace:size=20"
   }
 
 --------------------------------------------------------------------------------
