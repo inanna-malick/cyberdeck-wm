@@ -20,7 +20,6 @@ import XMonad.Layout.ThreeColumns
 import XMonad.Prompt.ConfirmPrompt
 import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
-import XMonad.Util.EZConfig
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.Run(spawnPipe)
 import qualified Data.Map                   as M
@@ -29,6 +28,7 @@ import qualified XMonad.Actions.Search      as S
 import qualified XMonad.Actions.Submap      as SM
 import qualified XMonad.Layout.WorkspaceDir as WD
 import qualified XMonad.Prompt              as P
+import qualified XMonad.Prompt.Input        as P
 import qualified XMonad.Prompt.AppendFile   as AP
 import qualified XMonad.Util.Dzen as DZEN
 
@@ -117,6 +117,13 @@ keyBindings =
     , ((modm, xK_c     ), confirmPrompt myXPConfig "kill window" kill)
     -- spawn alacritty with bottom (battery and process visualizer)
     , ((modm, xK_b), spawn $ alacritty ++ " -e btm --battery")
+    -- spawn alacritty with timer (cterm, todo: number of seconds)
+    , ((modm, xK_t), do
+          input <- P.inputPromptWithCompl myXPConfig "timer for: " P.historyCompletion
+          case input of
+            Just s  -> spawn $ alacritty ++ " -e cdown --cyan " ++ s
+            Nothing -> pure ()
+      )
     ]
 
 
