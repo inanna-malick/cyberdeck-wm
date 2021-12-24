@@ -121,7 +121,7 @@ keyBindings =
     , ((modm, xK_t), do
           input <- P.inputPromptWithCompl myXPConfig "timer for: " P.historyCompletion
           case input of
-            Just s  -> spawn $ alacritty ++ " -e cdown --cyan " ++ s
+            Just s  -> spawn $ alacritty ++ " -e cdown -c cyan " ++ s
             Nothing -> pure ()
       )
     ]
