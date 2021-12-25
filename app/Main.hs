@@ -108,18 +108,25 @@ spawnCDown = do
 
 actionTree :: X ()
 actionTree = promote
-           [ Node (TSNode "Hello"    "displays hello"      (spawn "xmessage hello!")) []
-           , Node (TSNode "Shutdown" "Poweroff the system" (spawn "shutdown")) []
-           , Node (TSNode "Brightness" "Sets screen brightness" $ promote brightness) brightness
+           [ Node (TSNode "PROGRAMS" "Sets screen brightness" $ promote brightness) brightness
+           , Node (TSNode "SCREEN" "Sets screen brightness" $ promote brightness) brightness
+           , Node (TSNode "ADMIN"  "system config/control" $ promote admin) admin
            ]
   where
     promote = treeselectAction def
+    admin =
+      [ Node (TSNode "SHUTDOWN" "power off the system" (spawn "shutdown")) []
+      ]
+    programs =
+      [ Node (TSNode "BTM" "system info dashboard" spawnBtm) []
+      , Node (TSNode "CDOWN" "spawn a countdown timer" spawnCDown)  []
+      ]
     brightness =
-               [ Node (TSNode "Bright" "FULL POWER!!"            (spawn "rpi-backlight max")) []
-               -- TODO: only supports min/max
-               -- , Node (TSNode "Normal" "Normal Brightness (50%)" (spawn "rpi-backlight min "))  []
-               , Node (TSNode "Dim"    "Quite dark"              (spawn "rpi-backlight min"))  []
-               ]
+      [ Node (TSNode "Bright" "FULL POWER!!"            (spawn "rpi-backlight max")) []
+      -- TODO: only supports min/max
+      -- , Node (TSNode "Normal" "Normal Brightness (50%)" (spawn "rpi-backlight min "))  []
+      , Node (TSNode "Dim"    "Quite dark"              (spawn "rpi-backlight min"))  []
+      ]
 
 
 
@@ -138,27 +145,14 @@ keyBindings =
       --                   myXPConfig
       )
     , ((modm, xK_x), sendMessage $ Toggle NBFULL) -- toggle fullscreen for focus
-    , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
-
     , ((modm .|. shiftMask, xK_Right), shiftNextScreen)
     , ((modm .|. shiftMask, xK_Left),  shiftPrevScreen)
     -- launch a terminal (MOD + RETURN)
     , ((modm, xK_Return), spawn alacritty)
     -- close focused window  (MOD + C)
-    , ((modm, xK_c     ), confirmPrompt myXPConfig "kill window" kill)
-    , ((modm, xK_b), spawnBtm)
-    , ((modm, xK_t), spawnCDown)
+    , ((modm, xK_c), confirmPrompt myXPConfig "kill window" kill)
     ]
 
-
--- idea: 2-stage prompt, first provides search engine list with autocomplete,
--- second prompts for search query
--- look into it here: https://hackage.haskell.org/package/xmonad-contrib-0.13/docs/XMonad-Prompt.html
-searchEngineMap method = M.fromList $
-      [ ((0, xK_g), method S.google)
-      , ((0, xK_h), method S.hoogle)
-      , ((0, xK_w), method S.wikipedia)
-      ]
 
 
 --------------------------------------------------------------------------------
