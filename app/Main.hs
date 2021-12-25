@@ -29,7 +29,7 @@ import qualified XMonad.Actions.Submap      as SM
 import qualified XMonad.Layout.WorkspaceDir as WD
 import qualified XMonad.Prompt              as P
 import qualified XMonad.Prompt.Input        as P
-import qualified XMonad.Prompt.AppendFile   as AP
+import qualified XMonad.Prompt.XMonad       as P
 import qualified XMonad.Util.Dzen as DZEN
 
 import XMonad.Actions.CycleWS
@@ -43,7 +43,6 @@ import qualified XMonad.Layout.NoFrillsDecoration as NFD
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.Decoration
-import XMonad.Layout.Reflect -- haha yes
 import XMonad.Util.Font (Align(AlignRight))
 
 
@@ -88,25 +87,36 @@ modm :: KeyMask
 modm = mod1Mask -- Use the "Alt" key for the mod key
 
 
-
-
 -- key bindings for use with ez config tool
 ezKeyBindings :: [(String, X ())]
 ezKeyBindings =
     [ ("M-S-q", confirmPrompt myXPConfig "exit" (io exitSuccess))
     , ("M-S-l", spawn "dm-tool lock")
     , ("M-p",   shellPrompt myXPConfig)
-    , ("M-S-w", WD.changeDir myXPConfig)
     ]
+
+spawnBtm :: X ()
+spawnBtm = spawn $ alacritty ++ " -e btm --battery"
+
+spawnCDown :: X ()
+spawnCDown = do
+    input <- P.inputPromptWithCompl myXPConfig "timer for: " P.historyCompletion
+    case input of
+      Just s  -> spawn $ alacritty ++ " -e cdown -c cyan " ++ s
+      Nothing -> pure ()
 
 
 -- key bindings using actual key symbols and masks
 keyBindings :: [((KeyMask, KeySym), X ())]
 keyBindings =
-    [ ((modm, xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.def)
-    , ((modm, xK_r), sendMessage $ Toggle REFLECTY)
+    -- TODO: update stack LTS, latest version has custom titles here
+    [ ((modm, xK_s)
+      , P.xmonadPromptC [ ("btm", spawnBtm)
+                        , ("cdown", spawnCDown)
+                        ]
+                        myXPConfig
+      )
     , ((modm, xK_x), sendMessage $ Toggle NBFULL) -- toggle fullscreen for focus
-    , ((modm .|. shiftMask, xK_b), sendMessage $ Toggle $ HYPERTABBAR_DARK) -- toggle window decoration
     , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
 
     , ((modm .|. shiftMask, xK_Right), shiftNextScreen)
@@ -115,15 +125,8 @@ keyBindings =
     , ((modm, xK_Return), spawn alacritty)
     -- close focused window  (MOD + C)
     , ((modm, xK_c     ), confirmPrompt myXPConfig "kill window" kill)
-    -- spawn alacritty with bottom (battery and process visualizer)
-    , ((modm, xK_b), spawn $ alacritty ++ " -e btm --battery")
-    -- spawn alacritty with timer (cterm, todo: number of seconds)
-    , ((modm, xK_t), do
-          input <- P.inputPromptWithCompl myXPConfig "timer for: " P.historyCompletion
-          case input of
-            Just s  -> spawn $ alacritty ++ " -e cdown -c cyan " ++ s
-            Nothing -> pure ()
-      )
+    , ((modm, xK_b), spawnBtm)
+    , ((modm, xK_t), spawnCDown)
     ]
 
 
@@ -255,32 +258,8 @@ myLayout = WD.workspaceDir "~"
          . smartBorders
          . avoidStruts
          -- single-elem hlists of toggle transformer options (non-exclusive transforms)
-         . mkToggle (single REFLECTY)
          . mkToggle (single NBFULL)
-         . mkToggle (HYPERTABBAR_LIGHT ?? HYPERTABBAR_DARK ?? EOT)
          $ ThreeColMid 1 (3/100) (1/2)
        ||| Tall 1 (3/100) (1/2)
        ||| Mirror (Tall 1 (3/100) (1/2))
        ||| XMonad.Layout.Spiral.spiral (6/7)
-
-data HyperDecoration a = Hyper deriving (Show, Read)
-
-instance Eq a => DecorationStyle HyperDecoration a where
-    describeDeco _ = "Hyper"
-    shrink Hyper (Rectangle _ _ _ dh) r@(Rectangle x y w h) =
-        Rectangle x (y + fi dh) w (h - dh)
-    pureDecoration Hyper wh ht _ s _ (w, Rectangle x y wid _) =
-        if isInStack s w
-        then Just $ Rectangle x y nwh ht
-        else Nothing
-            where nwh = min wid wh
-
-hyperDeco :: (Eq a, Shrinker s) => s -> Theme
-           -> l a -> ModifiedLayout (Decoration HyperDecoration s) l a
-hyperDeco s c = decoration s c Hyper
-
-data HyperTabBar = HYPERTABBAR_LIGHT | HYPERTABBAR_DARK deriving (Read, Show, Eq, Typeable)
-instance Transformer HyperTabBar Window where
-    transform HYPERTABBAR_DARK x k = k (hyperDeco shrinkText (windowDecorationTheme dark) x) (\(ModifiedLayout _  x') -> x')
-
-    transform HYPERTABBAR_LIGHT x k = k (hyperDeco shrinkText (windowDecorationTheme light) x) (\(ModifiedLayout _  x') -> x')
