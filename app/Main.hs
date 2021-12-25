@@ -108,7 +108,7 @@ spawnCDown = do
 
 actionTree :: X ()
 actionTree = promote
-           [ Node (TSNode "PROGRAMS" "Sets screen brightness" $ promote brightness) brightness
+           [ Node (TSNode "PROGRAMS" "terminal UI programs" $ promote programs) programs
            , Node (TSNode "SCREEN" "Sets screen brightness" $ promote brightness) brightness
            , Node (TSNode "ADMIN"  "system config/control" $ promote admin) admin
            ]
