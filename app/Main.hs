@@ -106,6 +106,23 @@ spawnCDown = do
       Nothing -> pure ()
 
 
+actionTree :: X ()
+actionTree = promote
+           [ Node (TSNode "Hello"    "displays hello"      (spawn "xmessage hello!")) []
+           , Node (TSNode "Shutdown" "Poweroff the system" (spawn "shutdown")) []
+           , Node (TSNode "Brightness" "Sets screen brightness" $ promote brightness) brightness
+           ]
+  where
+    promote = treeselectAction def
+    brightness =
+               [ Node (TSNode "Bright" "FULL POWER!!"            (spawn "rpi-backlight max")) []
+               -- TODO: only supports min/max
+               -- , Node (TSNode "Normal" "Normal Brightness (50%)" (spawn "rpi-backlight min "))  []
+               , Node (TSNode "Dim"    "Quite dark"              (spawn "rpi-backlight min"))  []
+               ]
+
+
+
 -- key bindings using actual key symbols and masks
 keyBindings :: [((KeyMask, KeySym), X ())]
 keyBindings =
@@ -113,15 +130,8 @@ keyBindings =
     -- TODO: try runSelectedAction from GSConfig
     -- TODO: nvm, tree select is perfect, XMonad.Actions.TreeSelect
     [ ((modm, xK_s)
-      , treeselectAction def
-          [ Node (TSNode "Hello"    "displays hello"      (spawn "xmessage hello!")) []
-          , Node (TSNode "Shutdown" "Poweroff the system" (spawn "shutdown")) []
-          , Node (TSNode "Brightness" "Sets screen brightness using xbacklight" (return ()))
-              [ Node (TSNode "Bright" "FULL POWER!!"            (spawn "xbacklight -set 100")) []
-              , Node (TSNode "Normal" "Normal Brightness (50%)" (spawn "xbacklight -set 50"))  []
-              , Node (TSNode "Dim"    "Quite dark"              (spawn "xbacklight -set 10"))  []
-              ]
-          ]
+      -- TODO: transparent background, may require compositing wm or whatever - if not, eh
+      , actionTree
       -- , P.xmonadPromptC [ ("btm", spawnBtm)
       --                   , ("cdown", spawnCDown)
       --                   ]
