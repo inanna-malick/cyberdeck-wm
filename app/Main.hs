@@ -110,11 +110,22 @@ spawnCDown = do
 keyBindings :: [((KeyMask, KeySym), X ())]
 keyBindings =
     -- TODO: update stack LTS, latest version has custom titles here
+    -- TODO: try runSelectedAction from GSConfig
+    -- TODO: nvm, tree select is perfect, XMonad.Actions.TreeSelect
     [ ((modm, xK_s)
-      , P.xmonadPromptC [ ("btm", spawnBtm)
-                        , ("cdown", spawnCDown)
-                        ]
-                        myXPConfig
+      , treeselectAction def
+          [ Node (TSNode "Hello"    "displays hello"      (spawn "xmessage hello!")) []
+          , Node (TSNode "Shutdown" "Poweroff the system" (spawn "shutdown")) []
+          , Node (TSNode "Brightness" "Sets screen brightness using xbacklight" (return ()))
+              [ Node (TSNode "Bright" "FULL POWER!!"            (spawn "xbacklight -set 100")) []
+              , Node (TSNode "Normal" "Normal Brightness (50%)" (spawn "xbacklight -set 50"))  []
+              , Node (TSNode "Dim"    "Quite dark"              (spawn "xbacklight -set 10"))  []
+              ]
+          ]
+      -- , P.xmonadPromptC [ ("btm", spawnBtm)
+      --                   , ("cdown", spawnCDown)
+      --                   ]
+      --                   myXPConfig
       )
     , ((modm, xK_x), sendMessage $ Toggle NBFULL) -- toggle fullscreen for focus
     , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
